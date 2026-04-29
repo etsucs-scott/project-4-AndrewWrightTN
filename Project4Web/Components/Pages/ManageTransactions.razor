@@ -1,0 +1,101 @@
+﻿@page "/manage-transactions"
+@using Project4Web.Models
+@using Project4Web.Services
+
+@inject FinanceManager FinanceManager
+
+<h3>Manage Transactions</h3>
+
+<!-- This is what the user will fill out -->
+<div>
+    <input @bind="NewTransactionDate" type="date" />
+    <input @bind="NewTransactionDescription" placeholder="Description" />
+    <input @bind="NewTransactionAmount" type="number" step="0.01" placeholder="Amount" />
+    <input @bind="NewTransactionIsIncome" type="checkbox" /> Is Income
+    <button @onclick="AddTransaction">Add Transaction</button>
+</div>
+
+<!-- This is to show all the transactions listed -->
+<div>
+    <h4>Transactions</h4>
+    @if (FinanceManager.TransactionsByDate.Any())
+    {
+        @foreach (var entry in FinanceManager.TransactionsByDate)
+        {
+            <h5>@entry.Key.ToShortDateString()</h5>
+            <ul>
+                @foreach (var transaction in entry.Value)
+                {
+                    <li>
+                        @transaction.Description - @transaction.Amount:
+                        (@(transaction.IsIncome ? "Income" : "Expense"))
+                    </li>
+                }
+            </ul>
+        }
+    }
+    else
+    {
+        <p>No transactions available.</p>
+    }
+</div>
+
+<!-- This will show the financial summaries -->
+<div>
+    <p>Total Income: @FinanceManager.GetTotalIncome():C</p>
+    <p>Total Expenses: @FinanceManager.GetTotalExpenses():C</p>
+    <p>Net Savings: @FinanceManager.GetNetSavings():C</p>
+</div>
+
+<!-- These are the save and load buttons -->
+<div>
+    <button @onclick="SaveTransactions">Save Transactions</button>
+    <button @onclick="LoadTransactions">Load Transactions</button>
+</div>
+
+@code {
+    private DateTime NewTransactionDate = DateTime.Today;
+    private string NewTransactionDescription = string.Empty;
+    private decimal NewTransactionAmount;
+    private bool NewTransactionIsIncome;
+
+    private const string TransactionsFilePath = "transactions.json";
+
+    /// <summary>
+    /// How we get the information for display
+    /// </summary>
+    private void AddTransaction()
+    {
+        try
+        {
+            var transaction = new Transaction
+                {
+                    Description = NewTransactionDescription,
+                    Amount = NewTransactionAmount,
+                    IsIncome = NewTransactionIsIncome
+                };
+
+            FinanceManager.AddTransaction(NewTransactionDate, transaction);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding transaction: {ex.Message}");
+        }
+    }
+    /// <summary>
+    /// This saves the transaction to the file
+    /// </summary>
+
+    private void SaveTransactions()
+    {
+        FinanceManager.SaveTransactionsToFile(TransactionsFilePath);
+    }
+
+    /// <summary>
+    /// This will load the files transaction on the web page
+    /// </summary>
+    private void LoadTransactions()
+    {
+        FinanceManager.LoadTransactionsFromFile(TransactionsFilePath);
+    }
+}

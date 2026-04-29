@@ -1,0 +1,8 @@
+﻿@page "/dashboard"
+@inject Project4Web.Services.FinanceManager FinanceManager
+
+<h3>Dashboard</h3>
+
+<p>Total Income: @FinanceManager.GetTotalIncome().ToString("C")</p>
+<p>Total Expenses: @FinanceManager.GetTotalExpenses().ToString("C")</p>
+<p>Net Savings: @FinanceManager.GetNetSavings().ToString("C")</p>
